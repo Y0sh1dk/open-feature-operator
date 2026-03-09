@@ -14,7 +14,6 @@ import (
 	"github.com/open-feature/open-feature-operator/internal/common/utils"
 	"github.com/stretchr/testify/require"
 	appsV1 "k8s.io/api/apps/v1"
-	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -815,7 +814,7 @@ func getExpectedPod(namespace string) v1.Pod {
 					Name:          "flagd",
 					Image:         "flagd:0.5.0",
 					WorkingDir:    "",
-					RestartPolicy: ptr.To(corev1.ContainerRestartPolicyAlways),
+					RestartPolicy: ptr.To(v1.ContainerRestartPolicyAlways),
 					Ports: []v1.ContainerPort{
 						{
 							Name:          "management",
