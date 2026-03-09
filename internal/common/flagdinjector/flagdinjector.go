@@ -19,6 +19,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -420,6 +421,7 @@ func (fi *FlagdContainerInjector) generateBasicFlagdContainer(flagSourceConfig *
 		ImagePullPolicy: common.FlagdImagePullPolicy,
 		VolumeMounts:    []corev1.VolumeMount{},
 		Env:             []corev1.EnvVar{},
+		RestartPolicy:   ptr.To(corev1.ContainerRestartPolicyAlways),
 		Ports: []corev1.ContainerPort{
 			{
 				Name:          "management",
@@ -458,13 +460,13 @@ func (fi *FlagdContainerInjector) createConfigMap(ctx context.Context, namespace
 }
 
 func addFlagdContainer(spec *corev1.PodSpec, flagdContainer corev1.Container) {
-	for idx, container := range spec.Containers {
+	for idx, container := range spec.InitContainers {
 		if container.Name == flagdContainer.Name {
-			spec.Containers[idx] = flagdContainer
+			spec.InitContainers[idx] = flagdContainer
 			return
 		}
 	}
-	spec.Containers = append(spec.Containers, flagdContainer)
+	spec.InitContainers = append(spec.InitContainers, flagdContainer)
 }
 
 func appendSources(sources []types.SourceConfig, sidecar *corev1.Container) error {
