@@ -118,7 +118,13 @@ func (fi *FlagdContainerInjector) InjectFlagd(
 		flagdContainer.Resources.Limits = flagSourceConfig.Resources.Limits
 	}
 
-	addFlagdContainer(podSpec, flagdContainer)
+	if len(podSpec.Containers) == 0 {
+		addFlagdContainer(podSpec, flagdContainer)
+	} else {
+		flagdContainer.RestartPolicy = ptr.To(corev1.ContainerRestartPolicyAlways)
+
+		addFlagdSidecarContainer(podSpec, flagdContainer)
+	}
 
 	return nil
 }
@@ -421,7 +427,6 @@ func (fi *FlagdContainerInjector) generateBasicFlagdContainer(flagSourceConfig *
 		ImagePullPolicy: common.FlagdImagePullPolicy,
 		VolumeMounts:    []corev1.VolumeMount{},
 		Env:             []corev1.EnvVar{},
-		RestartPolicy:   ptr.To(corev1.ContainerRestartPolicyAlways),
 		Ports: []corev1.ContainerPort{
 			{
 				Name:          "management",
@@ -459,7 +464,7 @@ func (fi *FlagdContainerInjector) createConfigMap(ctx context.Context, namespace
 	return fi.Client.Create(ctx, cm)
 }
 
-func addFlagdContainer(spec *corev1.PodSpec, flagdContainer corev1.Container) {
+func addFlagdSidecarContainer(spec *corev1.PodSpec, flagdContainer corev1.Container) {
 	for idx, container := range spec.InitContainers {
 		if container.Name == flagdContainer.Name {
 			spec.InitContainers[idx] = flagdContainer
@@ -467,6 +472,16 @@ func addFlagdContainer(spec *corev1.PodSpec, flagdContainer corev1.Container) {
 		}
 	}
 	spec.InitContainers = append(spec.InitContainers, flagdContainer)
+}
+
+func addFlagdContainer(spec *corev1.PodSpec, flagdContainer corev1.Container) {
+	for idx, container := range spec.Containers {
+		if container.Name == flagdContainer.Name {
+			spec.Containers[idx] = flagdContainer
+			return
+		}
+	}
+	spec.Containers = append(spec.Containers, flagdContainer)
 }
 
 func appendSources(sources []types.SourceConfig, sidecar *corev1.Container) error {
