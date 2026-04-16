@@ -182,7 +182,7 @@ func TestFlagdContainerInjector_InjectDefaultSyncProvider_FlagdConfigArgs(t *tes
 				Tag:                       testTag,
 			}
 
-			pod := generatePod([]v1.Container{generateContainer()}, nil, namespace)
+			pod := generatePod([]v1.Container{generateContainer()}, nil, nil, namespace)
 			flagSourceConfig := getFlagSourceConfigSpec()
 			flagSourceConfig.DefaultSyncProvider = apicommon.SyncProviderGrpc
 			flagSourceConfig.Sources = []api.Source{{}}
